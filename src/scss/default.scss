@@ -95,7 +95,8 @@ $ticks-position: 5px, 10px !default;
     .rule-operator-container,
     .rule-operator2-container,
     .rule-value-container,
-    .rule-value2-container {
+    .rule-value2-container,
+    .rule-value3-container {
       @extend %rule-component;
     }
   }

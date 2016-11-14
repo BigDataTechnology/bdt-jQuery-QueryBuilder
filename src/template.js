@@ -49,6 +49,7 @@ QueryBuilder.templates.rule = '\
   <div class="rule-value-container"></div> \
   <div class="rule-operator2-container"></div> \
   <div class="rule-value2-container"></div> \
+  <div class="rule-value3-container"></div> \
 </li>';
 
 QueryBuilder.templates.filterSelect = '\
@@ -272,13 +273,83 @@ QueryBuilder.prototype.getRuleInput2 = function(rule, value_id) {
     var c = filter.vertical ? ' class=block' : '';
     var h = '';
 
-    console.log("getRuleinput2 -", "filter", filter, "validation", validation, "name", name, "c", c, "h", h);
-
     if (typeof filter.input2 == 'function') {
         h = filter.input.call(this, rule, name);
     }
     else {
         switch (filter.input2) {
+            case 'radio': case 'checkbox':
+                Utils.iterateOptions(filter.values, function(key, val) {
+                    h+= '<label' + c + '><input type="' + filter.input2 + '" name="' + name + '" value="' + key + '"> ' + val + '</label> ';
+                });
+                break;
+
+            case 'select':
+                h+= '<select class="form-control" name="' + name + '"' + (filter.multiple ? ' multiple' : '') + '>';
+                if (filter.placeholder) {
+                    h+= '<option value="' + filter.placeholder_value + '" disabled selected>' + filter.placeholder + '</option>';
+                }
+                Utils.iterateOptions(filter.values, function(key, val) {
+                    h+= '<option value="' + key + '">' + val + '</option> ';
+                });
+                h+= '</select>';
+                break;
+
+            case 'textarea':
+                h+= '<textarea class="form-control" name="' + name + '"';
+                if (filter.size) h+= ' cols="' + filter.size + '"';
+                if (filter.rows) h+= ' rows="' + filter.rows + '"';
+                if (validation.min !== undefined) h+= ' minlength="' + validation.min + '"';
+                if (validation.max !== undefined) h+= ' maxlength="' + validation.max + '"';
+                if (filter.placeholder) h+= ' placeholder="' + filter.placeholder + '"';
+                h+= '></textarea>';
+                break;
+
+            default:
+                switch (QueryBuilder.types[filter.type2]) {
+                    case 'number':
+                        h+= '<input class="form-control" type="number" name="' + name + '"';
+                        if (validation.step !== undefined) h+= ' step="' + validation.step + '"';
+                        if (validation.min !== undefined) h+= ' min="' + validation.min + '"';
+                        if (validation.max !== undefined) h+= ' max="' + validation.max + '"';
+                        if (filter.placeholder) h+= ' placeholder="' + filter.placeholder + '"';
+                        if (filter.size) h+= ' size="' + filter.size + '"';
+                        h+= '>';
+                        break;
+
+                    default:
+                        h+= '<input class="form-control" type="text" name="' + name + '"';
+                        if (filter.placeholder) h+= ' placeholder="' + filter.placeholder + '"';
+                        if (filter.type === 'string' && validation.min !== undefined) h+= ' minlength="' + validation.min + '"';
+                        if (filter.type === 'string' && validation.max !== undefined) h+= ' maxlength="' + validation.max + '"';
+                        if (filter.size) h+= ' size="' + filter.size + '"';
+                        h+= '>';
+                }
+        }
+    }
+
+    return this.change('getRuleInput', h, rule, name);
+};
+
+/**
+ * Return the rule value HTML
+ * @param rule {Rule}
+ * @param filter {object}
+ * @param value_id {int}
+ * @return {string}
+ */
+QueryBuilder.prototype.getRuleInput3 = function(rule, value_id) {
+    var filter = rule.filter;
+    var validation = rule.filter.validation || {};
+    var name = rule.id + '_value3_' + value_id;
+    var c = filter.vertical ? ' class=block' : '';
+    var h = '';
+
+    if (typeof filter.input3 == 'function') {
+        h = filter.input.call(this, rule, name);
+    }
+    else {
+        switch (filter.input3) {
             case 'radio': case 'checkbox':
                 Utils.iterateOptions(filter.values, function(key, val) {
                     h+= '<label' + c + '><input type="' + filter.input2 + '" name="' + name + '" value="' + key + '"> ' + val + '</label> ';

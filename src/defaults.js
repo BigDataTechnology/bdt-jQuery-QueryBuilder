@@ -42,8 +42,10 @@ var Selectors = QueryBuilder.selectors = {
     filter_container:     '.rule-filter-container',
     operator_container:   '.rule-operator-container',
     operator2_container:  '.rule-operator2-container',
+    operator3_container:  '.rule-operator3-container',
     value_container:      '.rule-value-container',
     value2_container:     '.rule-value2-container',
+    value3_container:     '.rule-value3-container',
     error_container:      '.error-container',
     condition_container:  '.rules-group-header .group-conditions',
 
@@ -58,8 +60,10 @@ var Selectors = QueryBuilder.selectors = {
     rule_filter:          '.rule-filter-container [name$=_filter]',
     rule_operator:        '.rule-operator-container [name$=_operator]',
     rule_operator2:       '.rule-operator2-container [name$=_operator2]',
+    rule_operator3:       '.rule-operator3-container [name$=_operator2]',
     rule_value:           '.rule-value-container [name*=_value_]',
     rule_value2:          '.rule-value2-container [name*=_value2_]',
+    rule_value3:          '.rule-value3-container [name*=_value3_]',
 
     add_rule:             '[data-add=rule]',
     delete_rule:          '[data-delete=rule]',
@@ -167,7 +171,8 @@ QueryBuilder.DEFAULTS = {
         rule: null,
         filterSelect: null,
         operatorSelect: null,
-        operator2Select: null
+        operator2Select: null,
+        operator3Select: null
     },
 
     lang_code: 'en',
@@ -197,6 +202,29 @@ QueryBuilder.DEFAULTS = {
     ],
 
     operators2: [
+        'equal',
+        'not_equal',
+        'in',
+        'not_in',
+        'less',
+        'less_or_equal',
+        'greater',
+        'greater_or_equal',
+        'between',
+        'not_between',
+        'begins_with',
+        'not_begins_with',
+        'contains',
+        'not_contains',
+        'ends_with',
+        'not_ends_with',
+        'is_empty',
+        'is_not_empty',
+        'is_null',
+        'is_not_null'
+    ],
+
+    operators3: [
         'equal',
         'not_equal',
         'in',

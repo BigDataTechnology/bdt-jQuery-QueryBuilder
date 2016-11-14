@@ -255,9 +255,6 @@ QueryBuilder.prototype.getOperators = function(filter) {
  * @return {object[]}
  */
 QueryBuilder.prototype.getOperators2 = function(filter) {
-    console.log("getOperators2 - filter", filter);
-    console.log("getOperators2 - this", this);
-
     if (typeof filter == 'string') {
         filter = this.getFilterById(filter);
     }
@@ -287,6 +284,43 @@ QueryBuilder.prototype.getOperators2 = function(filter) {
     }
 
     return this.change('getoperators2', result, filter);
+};
+
+/**
+ * Returns the operators for a filter
+ * @param filter {string|object} (filter id name or filter object)
+ * @return {object[]}
+ */
+QueryBuilder.prototype.getOperators3 = function(filter) {
+    if (typeof filter == 'string') {
+        filter = this.getFilterById(filter);
+    }
+
+    var result = [];
+
+    for (var i = 0, l = this.operators3.length; i < l; i++) {
+        // filter operators3 check
+        if (filter.operators3) {
+            if (filter.operators3.indexOf(this.operators3[i].type) == -1) {
+                continue;
+            }
+        }
+        // type check
+        else if (this.operators3[i].apply_to.indexOf(QueryBuilder.types[filter.type]) == -1) {
+            continue;
+        }
+
+        result.push(this.operators3[i]);
+    }
+
+    // keep sort order defined for the filter
+    if (filter.operators3) {
+        result.sort(function(a, b) {
+            return filter.operators3.indexOf(a.type) - filter.operators3.indexOf(b.type);
+        });
+    }
+
+    return this.change('getoperators3', result, filter);
 };
 
 /**
@@ -487,6 +521,76 @@ QueryBuilder.prototype.getRuleValue2 = function(rule) {
     }
 
     return this.change('getRuleValue2', value, rule);
+};
+
+/**
+ * Returns rule value3
+ * @param rule {Rule}
+ * @return {mixed}
+ */
+QueryBuilder.prototype.getRuleValue3 = function(rule) {
+    var filter = rule.filter;
+    var operator = rule.operator;
+    var value = [];
+
+    if (filter.valueGetter) {
+        value = filter.valueGetter.call(this, rule);
+    }
+    else {
+        var $value = rule.$el.find(Selectors.value3_container);
+
+        for (var i = 0; i < operator.nb_inputs; i++) {
+            var name = Utils.escapeElementId(rule.id + '_value_' + i);
+            var tmp;
+
+            switch (filter.input) {
+                case 'radio':
+                    value.push($value.find('[name=' + name + ']:checked').val());
+                    break;
+
+                case 'checkbox':
+                    tmp = [];
+                    $value.find('[name=' + name + ']:checked').each(function() {
+                        tmp.push($(this).val());
+                    });
+                    value.push(tmp);
+                    break;
+
+                case 'select':
+                    if (filter.multiple) {
+                        tmp = [];
+                        $value.find('[name=' + name + '] option:selected').each(function() {
+                            tmp.push($(this).val());
+                        });
+                        value.push(tmp);
+                    }
+                    else {
+                        value.push($value.find('[name=' + name + '] option:selected').val());
+                    }
+                    break;
+
+                default:
+                    value.push($value.find('[name=' + name + ']').val());
+            }
+        }
+
+        if (operator.multiple && filter.value_separator) {
+            value = value.map(function(val) {
+                return val.split(filter.value_separator);
+            });
+        }
+
+        if (operator.nb_inputs === 1) {
+            value = value[0];
+        }
+
+        // @deprecated
+        if (filter.valueParser) {
+            value = filter.valueParser.call(this, rule, value);
+        }
+    }
+
+    return this.change('getRuleValue3', value, rule);
 };
 
 /**
