@@ -1,10 +1,9 @@
 {
-  "name": "jQuery-QueryBuilder",
+  "name": "bdt-jQuery-QueryBuilder",
+  "version": "0.1.0",
   "authors": [
     {
-      "name": "Damien \"Mistic\" Sorel",
-      "email": "contact@git.strangeplanet.fr",
-      "homepage": "http://www.strangeplanet.fr"
+      "name": "Michele Monti"
     }
   ],
   "description": "jQuery plugin for user friendly query/filter creator",

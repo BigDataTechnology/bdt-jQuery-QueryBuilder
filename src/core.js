@@ -30,6 +30,7 @@ QueryBuilder.prototype.init = function($el, options) {
     this.filters = this.settings.filters;
     this.icons = this.settings.icons;
     this.operators = this.settings.operators;
+    this.operators2 = this.settings.operators2;
     this.templates = this.settings.templates;
     this.plugins = this.settings.plugins;
 
@@ -59,8 +60,10 @@ QueryBuilder.prototype.init = function($el, options) {
     // INIT
     this.$el.addClass('query-builder form-inline');
 
+    console.log("init - this", this);
     this.filters = this.checkFilters(this.filters);
     this.operators = this.checkOperators(this.operators);
+    this.operators2 = this.checkOperators(this.operators2);
     this.bindEvents();
     this.initPlugins();
 
@@ -575,6 +578,30 @@ QueryBuilder.prototype.createRuleOperators = function(rule) {
 };
 
 /**
+ * Create the operators <select> for a rule and init the rule operator
+ * @param rule {Rule}
+ */
+QueryBuilder.prototype.createRuleOperators2 = function(rule) {
+    var $operator2Container = rule.$el.find(Selectors.operator2_container).empty();
+
+    if (!rule.filter) {
+        return;
+    }
+
+    console.log("createRuleOperators2 - rule", rule);
+
+    var operators2 = this.getOperators2(rule.filter);
+    var $operator2Select = $(this.getRuleOperatorSelect(rule, operators2));
+
+    $operator2Container.html($operator2Select);
+
+    // set the operator without triggering update event
+    rule.__.operator2 = operators2[0];
+
+    this.trigger('afterCreateRuleOperators2', rule, operators2);
+};
+
+/**
  * Create the main input for a rule
  * @param rule {Rule}
  */
@@ -623,13 +650,65 @@ QueryBuilder.prototype.createRuleInput = function(rule) {
 };
 
 /**
+ * Create the main input for a rule
+ * @param rule {Rule}
+ */
+QueryBuilder.prototype.createRuleInput2 = function(rule) {
+    var $valueContainer = rule.$el.find(Selectors.value2_container).empty();
+
+    console.log("createRuleInput2 - ", rule);
+    rule.__.value2 = undefined;
+
+    if (!rule.filter || !rule.operator || rule.operator.nb_inputs === 0) {
+        return;
+    }
+
+
+    var self = this;
+    var $inputs = $();
+    var filter = rule.filter;
+
+    for (var i = 0; i < rule.operator.nb_inputs; i++) {
+        var $ruleInput = $(this.getRuleInput2(rule, i));
+        if (i > 0) $valueContainer.append(this.settings.inputs_separator);
+        $valueContainer.append($ruleInput);
+        $inputs = $inputs.add($ruleInput);
+    }
+
+    $valueContainer.show();
+
+    $inputs.on('change ' + (filter.input_event || ''), function() {
+        self.status.updating_value = true;
+        rule.value2 = self.getRuleValue2(rule);
+        self.status.updating_value = false;
+    });
+
+    if (filter.plugin) {
+        $inputs[filter.plugin](filter.plugin_config || {});
+    }
+
+    this.trigger('afterCreateRuleInput2', rule);
+
+    if (filter.default_value !== undefined) {
+        rule.value2 = filter.default_value;
+    }
+    else {
+        self.status.updating_value = true;
+        rule.value2 = self.getRuleValue2(rule);
+        self.status.updating_value = false;
+    }
+};
+
+/**
  * Perform action when rule's filter is changed
  * @param rule {Rule}
  * @param previousFilter {object}
  */
 QueryBuilder.prototype.updateRuleFilter = function(rule, previousFilter) {
     this.createRuleOperators(rule);
+    this.createRuleOperators2(rule);
     this.createRuleInput(rule);
+    this.createRuleInput2(rule);
 
     rule.$el.find(Selectors.rule_filter).val(rule.filter ? rule.filter.id : '-1');
 

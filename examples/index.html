@@ -184,6 +184,26 @@ var options = {
     unique: true
   },
   /*
+   * result
+   */
+  {
+    id: 'result',
+    label: 'Result',
+    type: 'integer',
+    input: 'select',
+    values: {
+      1: 'Books',
+      2: 'Movies',
+      3: 'Music',
+      4: 'Tools',
+      5: 'Goodies',
+      6: 'Clothes'
+    },
+    operators: ['equal'],
+    type2: 'string',
+    operators2: ['equal', 'less', 'less_or_equal', 'greater', 'greater_or_equal']
+  },
+  /*
    * textarea
    */
   {

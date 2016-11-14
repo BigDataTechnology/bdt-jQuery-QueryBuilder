@@ -17,6 +17,7 @@ $rule-border: 1px solid $rule-border-color !default;
 $rule-padding: 5px !default;
 // scss-lint:disable ColorVariable
 $rule-value-separator: 1px solid #DDD !default;
+$rule-value2-separator: 1px solid #DDD !default;
 
 // errors
 $error-icon-color: #F00 !default;
@@ -92,11 +93,14 @@ $ticks-position: 5px, 10px !default;
 
     .rule-filter-container,
     .rule-operator-container,
-    .rule-value-container {
+    .rule-operator2-container,
+    .rule-value-container,
+    .rule-value2-container {
       @extend %rule-component;
     }
   }
 
+  .rule-value2-container,
   .rule-value-container {
     border-left: $rule-value-separator;
     padding-left: 5px;

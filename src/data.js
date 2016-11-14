@@ -250,6 +250,46 @@ QueryBuilder.prototype.getOperators = function(filter) {
 };
 
 /**
+ * Returns the operators for a filter
+ * @param filter {string|object} (filter id name or filter object)
+ * @return {object[]}
+ */
+QueryBuilder.prototype.getOperators2 = function(filter) {
+    console.log("getOperators2 - filter", filter);
+    console.log("getOperators2 - this", this);
+
+    if (typeof filter == 'string') {
+        filter = this.getFilterById(filter);
+    }
+
+    var result = [];
+
+    for (var i = 0, l = this.operators2.length; i < l; i++) {
+        // filter operators2 check
+        if (filter.operators2) {
+            if (filter.operators2.indexOf(this.operators2[i].type) == -1) {
+                continue;
+            }
+        }
+        // type check
+        else if (this.operators2[i].apply_to.indexOf(QueryBuilder.types[filter.type]) == -1) {
+            continue;
+        }
+
+        result.push(this.operators2[i]);
+    }
+
+    // keep sort order defined for the filter
+    if (filter.operators2) {
+        result.sort(function(a, b) {
+            return filter.operators2.indexOf(a.type) - filter.operators2.indexOf(b.type);
+        });
+    }
+
+    return this.change('getoperators2', result, filter);
+};
+
+/**
  * Returns a particular filter by its id
  * @throws UndefinedFilterError
  * @param filterId {string}
@@ -283,6 +323,26 @@ QueryBuilder.prototype.getOperatorByType = function(type) {
     for (var i = 0, l = this.operators.length; i < l; i++) {
         if (this.operators[i].type == type) {
             return this.operators[i];
+        }
+    }
+
+    Utils.error('UndefinedOperator', 'Undefined operator "{0}"', type);
+};
+
+/**
+ * Return a particular operator by its type
+ * @throws UndefinedOperatorError
+ * @param type {string}
+ * @return {object|null}
+ */
+QueryBuilder.prototype.getOperator2ByType = function(type) {
+    if (type == '-1') {
+        return null;
+    }
+
+    for (var i = 0, l = this.operators2.length; i < l; i++) {
+        if (this.operators2[i].type == type) {
+            return this.operators2[i];
         }
     }
 
@@ -360,6 +420,76 @@ QueryBuilder.prototype.getRuleValue = function(rule) {
 };
 
 /**
+ * Returns rule value2
+ * @param rule {Rule}
+ * @return {mixed}
+ */
+QueryBuilder.prototype.getRuleValue2 = function(rule) {
+    var filter = rule.filter;
+    var operator = rule.operator;
+    var value = [];
+
+    if (filter.valueGetter) {
+        value = filter.valueGetter.call(this, rule);
+    }
+    else {
+        var $value = rule.$el.find(Selectors.value2_container);
+
+        for (var i = 0; i < operator.nb_inputs; i++) {
+            var name = Utils.escapeElementId(rule.id + '_value_' + i);
+            var tmp;
+
+            switch (filter.input) {
+                case 'radio':
+                    value.push($value.find('[name=' + name + ']:checked').val());
+                    break;
+
+                case 'checkbox':
+                    tmp = [];
+                    $value.find('[name=' + name + ']:checked').each(function() {
+                        tmp.push($(this).val());
+                    });
+                    value.push(tmp);
+                    break;
+
+                case 'select':
+                    if (filter.multiple) {
+                        tmp = [];
+                        $value.find('[name=' + name + '] option:selected').each(function() {
+                            tmp.push($(this).val());
+                        });
+                        value.push(tmp);
+                    }
+                    else {
+                        value.push($value.find('[name=' + name + '] option:selected').val());
+                    }
+                    break;
+
+                default:
+                    value.push($value.find('[name=' + name + ']').val());
+            }
+        }
+
+        if (operator.multiple && filter.value_separator) {
+            value = value.map(function(val) {
+                return val.split(filter.value_separator);
+            });
+        }
+
+        if (operator.nb_inputs === 1) {
+            value = value[0];
+        }
+
+        // @deprecated
+        if (filter.valueParser) {
+            value = filter.valueParser.call(this, rule, value);
+        }
+    }
+
+    return this.change('getRuleValue2', value, rule);
+};
+
+/**
  * Sets the value of a rule.
  * @param rule {Rule}
  * @param value {mixed}
@@ -373,6 +503,56 @@ QueryBuilder.prototype.setRuleValue = function(rule, value) {
     }
     else {
         var $value = rule.$el.find(Selectors.value_container);
+
+        if (operator.nb_inputs == 1) {
+            value = [value];
+        }
+        else {
+            value = value;
+        }
+
+        for (var i = 0; i < operator.nb_inputs; i++) {
+            var name = Utils.escapeElementId(rule.id + '_value_' + i);
+
+            switch (filter.input) {
+                case 'radio':
+                    $value.find('[name=' + name + '][value="' + value[i] + '"]').prop('checked', true).trigger('change');
+                    break;
+
+                case 'checkbox':
+                    if (!$.isArray(value[i])) {
+                        value[i] = [value[i]];
+                    }
+                    value[i].forEach(function(value) {
+                        $value.find('[name=' + name + '][value="' + value + '"]').prop('checked', true).trigger('change');
+                    });
+                    break;
+
+                default:
+                    if (operator.multiple && filter.value_separator && $.isArray(value[i])) {
+                        value[i] = value[i].join(filter.value_separator);
+                    }
+                    $value.find('[name=' + name + ']').val(value[i]).trigger('change');
+                    break;
+            }
+        }
+    }
+};
+
+/**
+ * Sets the value2 of a rule.
+ * @param rule {Rule}
+ * @param value {mixed}
+ */
+QueryBuilder.prototype.setRuleValue2 = function(rule, value) {
+    var filter = rule.filter;
+    var operator = rule.operator2;
+
+    if (filter.valueSetter) {
+        filter.valueSetter.call(this, rule, value);
+    }
+    else {
+        var $value = rule.$el.find(Selectors.value2_container);
 
         if (operator.nb_inputs == 1) {
             value = [value];
